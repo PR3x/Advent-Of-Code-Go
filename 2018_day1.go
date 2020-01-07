@@ -5,25 +5,22 @@ import (
 	"strconv"
 )
 
-func checkDupes(freqs []int) (int, bool) {
-	for i, j := range freqs {
-		for _, k := range freqs[0:i] {
-			if j == k {
-				return k, true
-			}
+func checkDupes(freqs map[int]bool) (int, bool) {
+	for i := range freqs {
+		if freqs[i] {
+			return i, true
 		}
 	}
 	return 0, false
 }
 
-func buildFreqs(commands []int, startFrom int) []int {
-	freqs := make([]int, 0)
+func buildFreqs(commands []int, freqs map[int]bool, startFrom int) (map[int]bool, int) {
 	freq := startFrom
 	for _, i := range commands {
 		freq += i
-		freqs = append(freqs, freq)
+		freqs[freq] = true
 	}
-	return freqs
+	return freqs, freq
 }
 
 // Day1 runs the problem for Day 1
@@ -38,14 +35,17 @@ func Day1(ch chan int) {
 		}
 		commands = append(commands, i)
 	}
-	freqs := append([]int{0}, buildFreqs(commands, 0)...)
-	ch <- freqs[len(freqs)-1]
+	freqs := map[int]bool{0: true}
+	freq := 0
+	freqs, freq = buildFreqs(commands, freqs, 0)
+	ch <- freq
 
 	dupe := 0
 	done := false
+	last := 0
 	for !done {
+		freqs, last = buildFreqs(commands, freqs, last)
 		dupe, done = checkDupes(freqs)
-		freqs = append(freqs, buildFreqs(commands, freqs[len(freqs)-1])...)
 	}
 	ch <- dupe
 
